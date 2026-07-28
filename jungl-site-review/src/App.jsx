@@ -141,7 +141,7 @@ function SectionCard({ sec }) {
   );
 }
 
-function EmailGate({ onUnlock, siteUrl }) {
+function EmailGate({ onUnlock, siteUrl, lockedCount }) {
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState("");
@@ -161,11 +161,13 @@ function EmailGate({ onUnlock, siteUrl }) {
   };
 
   return (
-    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: "36px 28px", textAlign: "center" }}>
-      <div style={{ fontSize: 28, marginBottom: 14 }}>🔓</div>
-      <div style={{ fontSize: 20, fontWeight: 700, color: C.text, marginBottom: 8 }}>Unlock your full report</div>
-      <div style={{ fontSize: 14, color: C.textSub, lineHeight: 1.65, marginBottom: 28, maxWidth: 340, margin: "0 auto 28px" }}>
-        See all 6 sections, your priority fix list, and our personal take on your site.
+    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: "32px 24px", textAlign: "center" }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: C.lime, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 14 }}>
+        {lockedCount} more insights + our take
+      </div>
+      <div style={{ fontSize: 20, fontWeight: 700, color: C.text, marginBottom: 10 }}>See the full picture</div>
+      <div style={{ fontSize: 14, color: C.textSub, lineHeight: 1.65, marginBottom: 24, maxWidth: 340, margin: "0 auto 24px" }}>
+        Drop your email to unlock the rest — plus our "what we'd do" for every item.
       </div>
       <input
         type="email"
@@ -173,14 +175,16 @@ function EmailGate({ onUnlock, siteUrl }) {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && submit()}
-        style={{ width: "100%", padding: "14px 20px", background: "rgba(0,0,0,0.2)", border: `1px solid ${C.border}`, borderRadius: 50, color: C.text, fontSize: 15, outline: "none", marginBottom: 10, fontFamily: "inherit", textAlign: "center" }}
+        style={{ width: "100%", padding: "13px 20px", background: "rgba(0,0,0,0.2)", border: `1px solid ${C.border}`, borderRadius: 50, color: C.text, fontSize: 15, outline: "none", marginBottom: 10, fontFamily: "inherit", textAlign: "center" }}
       />
       {err && <div style={{ color: C.red, fontSize: 12, marginBottom: 10 }}>{err}</div>}
       <button onClick={submit} disabled={submitting}
-        style={{ width: "100%", padding: "14px", background: submitting ? C.border : C.lime, color: submitting ? C.textSub : C.limeDark, border: "none", borderRadius: 50, fontSize: 15, fontWeight: 700, cursor: submitting ? "not-allowed" : "pointer", fontFamily: "inherit", transition: "all 0.15s" }}>
-        {submitting ? "Unlocking..." : "Send me the full report →"}
+        style={{ width: "100%", padding: "13px", background: submitting ? C.border : C.lime, color: submitting ? C.textSub : C.limeDark, border: "none", borderRadius: 50, fontSize: 15, fontWeight: 700, cursor: submitting ? "not-allowed" : "pointer", fontFamily: "inherit", transition: "all 0.15s" }}>
+        {submitting ? "Unlocking..." : "Unlock"}
       </button>
-      <div style={{ fontSize: 11, color: C.textMuted, marginTop: 12 }}>No spam. Unsubscribe anytime.</div>
+      <div style={{ fontSize: 11, color: C.textMuted, marginTop: 12 }}>
+        We'll add you to the Jungl list. No spam, unsubscribe anytime.
+      </div>
     </div>
   );
 }
@@ -221,9 +225,9 @@ export default function App() {
   };
 
   const analyze = async () => {
-    const cleanUrl = url.trim();
+    const cleanUrl = url.trim().replace(/^https?:\/\//, "");
     if (!cleanUrl) { setError("Please enter your website URL."); return; }
-    const fullUrl = cleanUrl.startsWith("http") ? cleanUrl : "https://" + cleanUrl;
+    const fullUrl = "https://" + cleanUrl;
     setError("");
     setBarDone(false);
     setStep("loading");
@@ -310,8 +314,8 @@ export default function App() {
 
           {!unlocked && lockedSections.length > 0 && (
             <>
-              <div style={{ position: "relative", marginBottom: 0 }}>
-                <div style={{ filter: "blur(6px)", pointerEvents: "none", userSelect: "none", opacity: 0.6 }}>
+              <div style={{ position: "relative", height: 140, overflow: "hidden", marginBottom: 0 }}>
+                <div style={{ filter: "blur(7px)", pointerEvents: "none", userSelect: "none", opacity: 0.65 }}>
                   {lockedSections.map((sec, i) => <SectionCard key={i} sec={sec} />)}
                   {r.junglTake && (
                     <div style={{ background: C.card, border: `1px solid #2a4030`, borderRadius: 12, padding: "20px", marginBottom: 10 }}>
@@ -320,11 +324,9 @@ export default function App() {
                     </div>
                   )}
                 </div>
-                <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "100%", background: `linear-gradient(to bottom, transparent 0%, ${C.bg} 60%)`, pointerEvents: "none" }} />
+                <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "100%", background: `linear-gradient(to bottom, transparent 10%, ${C.bg} 80%)`, pointerEvents: "none" }} />
               </div>
-              <div style={{ marginTop: 8 }}>
-                <EmailGate onUnlock={(email) => setUnlocked(true)} siteUrl={url} />
-              </div>
+              <EmailGate onUnlock={() => setUnlocked(true)} siteUrl={url} lockedCount={lockedSections.length} />
             </>
           )}
 
@@ -338,13 +340,21 @@ export default function App() {
                 </div>
               )}
               <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: "32px 24px", textAlign: "center" }}>
-                <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>Ready to fix this?</div>
-                <div style={{ fontSize: 14, color: C.textSub, lineHeight: 1.65, marginBottom: 4 }}>We build Squarespace websites for small businesses that look great, load fast, and actually convert. Discovery call is free and takes 20 minutes.</div>
-                <button onClick={() => window.open("https://www.junglstudio.com", "_blank")}
-                  style={{ display: "inline-block", padding: "13px 32px", background: C.lime, color: C.limeDark, borderRadius: 50, fontSize: 14, fontWeight: 700, cursor: "pointer", border: "none", fontFamily: "inherit", marginTop: 16 }}>
-                  Book a free discovery call
-                </button>
-                <div style={{ borderTop: `1px solid ${C.border}`, marginTop: 20, paddingTop: 16 }}>
+                <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>Want us to take it from here?</div>
+                <div style={{ fontSize: 14, color: C.textSub, lineHeight: 1.65, marginBottom: 24 }}>
+                  We're a Squarespace-focused creative studio based in Hamburg and Denver. Kickoff to launch in five business days, no surprises.
+                </div>
+                <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+                  <button onClick={() => window.open("https://www.junglstudio.com/contact", "_blank")}
+                    style={{ padding: "12px 28px", background: C.lime, color: C.limeDark, borderRadius: 50, fontSize: 14, fontWeight: 700, cursor: "pointer", border: "none", fontFamily: "inherit" }}>
+                    Book a call
+                  </button>
+                  <button onClick={() => window.open("https://www.junglstudio.com/web-design", "_blank")}
+                    style={{ padding: "12px 28px", background: "none", color: C.text, borderRadius: 50, fontSize: 14, fontWeight: 600, cursor: "pointer", border: `1px solid ${C.border}`, fontFamily: "inherit" }}>
+                    Learn more
+                  </button>
+                </div>
+                <div style={{ borderTop: `1px solid ${C.border}`, marginTop: 24, paddingTop: 16 }}>
                   <button onClick={reset} style={{ background: "none", border: "none", color: C.textMuted, fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>Review another site</button>
                 </div>
               </div>
@@ -368,14 +378,17 @@ export default function App() {
           Paste your URL and we'll tell you what's working, where we see opportunity, and what we'd tackle first.
         </p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10, maxWidth: 620, margin: "0 auto" }}>
-          <input
-            type="url"
-            placeholder="https://yourwebsite.com"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && analyze()}
-            style={{ flex: "1 1 280px", padding: "17px 24px", borderRadius: 50, background: "rgba(255,255,255,0.07)", border: "1.5px solid rgba(255,255,255,0.12)", color: C.text, fontSize: 16, outline: "none", fontFamily: "inherit" }}
-          />
+          <div style={{ flex: "1 1 280px", display: "flex", alignItems: "center", padding: "17px 24px", borderRadius: 50, background: "rgba(255,255,255,0.07)", border: "1.5px solid rgba(255,255,255,0.12)" }}>
+            <span style={{ color: "rgba(238,247,238,0.35)", fontSize: 16, flexShrink: 0, userSelect: "none" }}>https://</span>
+            <input
+              type="text"
+              placeholder="yourwebsite.com"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && analyze()}
+              style={{ flex: 1, background: "none", border: "none", color: C.text, fontSize: 16, outline: "none", fontFamily: "inherit", minWidth: 0 }}
+            />
+          </div>
           <button onClick={analyze}
             style={{ flex: "0 0 auto", padding: "17px 32px", background: C.lime, color: C.limeDark, borderRadius: 50, fontSize: 15, fontWeight: 700, border: "none", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
             Review My Site
